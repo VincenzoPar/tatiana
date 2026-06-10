@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="it" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tatiana</title>
+    <meta
+      name="description"
+      content="Una pagina di scuse interattiva pensata per essere letta da cellulare."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Cormorant Garamond", "serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            colors: {
+              blush: {
+                50: "#fff7f8",
+                100: "#fdecef",
+                200: "#f8d6dd",
+                300: "#f2b8c4",
+                400: "#e98ca0",
+                500: "#dc6480",
+                600: "#c94668",
+                700: "#a73556",
+                800: "#7b2b43",
+                900: "#4c1d2a",
+              },
+              ink: "#2b1e23",
+              cream: "#fffaf7",
+            },
+            boxShadow: {
+              soft: "0 20px 50px rgba(110, 67, 85, 0.14)",
+              page: "0 12px 30px rgba(93, 59, 74, 0.14)",
+            },
+            keyframes: {
+              floaty: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-8px)" },
+              },
+              pulseSoft: {
+                "0%, 100%": { transform: "scale(1)", opacity: "0.7" },
+                "50%": { transform: "scale(1.08)", opacity: "1" },
+              },
+              fadeUp: {
+                "0%": { opacity: "0", transform: "translateY(12px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+            animation: {
+              floaty: "floaty 4.6s ease-in-out infinite",
+              pulseSoft: "pulseSoft 2.8s ease-in-out infinite",
+              fadeUp: "fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.9),
+            rgba(255, 255, 255, 0) 35%
+          ),
+          linear-gradient(180deg, #fff8f8 0%, #fdf1f2 48%, #fffaf7 100%);
+      }
+
+      .book-shell {
+        perspective: 2200px;
+        perspective-origin: center;
+      }
+
+      .book {
+        position: relative;
+        width: 100%;
+        max-width: 360px;
+        height: 500px;
+        transform-style: preserve-3d;
+      }
+
+      .page {
+        position: absolute;
+        inset: 0;
+        transform-origin: left center;
+        transform-style: preserve-3d;
+        transition:
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+          z-index 1ms linear 450ms;
+        cursor: pointer;
+      }
+
+      .page-face {
+        position: absolute;
+        inset: 0;
+        border-radius: 1.5rem;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        overflow: hidden;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98),
+          rgba(255, 248, 249, 0.96)
+        );
+        border: 1px solid rgba(167, 53, 86, 0.08);
+        box-shadow: 0 12px 30px rgba(93, 59, 74, 0.14);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .page-face::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgba(167, 53, 86, 0.08), transparent 14%),
+          repeating-linear-gradient(
+            180deg,
+            transparent 0 28px,
+            rgba(201, 70, 104, 0.06) 28px 29px
+          );
+        pointer-events: none;
+      }
+
+      .page-back {
+        transform: rotateY(180deg);
+        background: linear-gradient(180deg, #fffdfc, #fff5f6);
+      }
+
+      .page.flipped {
+        transform: rotateY(-180deg);
+      }
+
+      .page-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .page-number {
+        font-size: 0.75rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: rgba(123, 43, 67, 0.7);
+      }
+
+      .hearts {
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .heart {
+        position: absolute;
+        bottom: -24px;
+        font-size: 0.95rem;
+        opacity: 0;
+        animation: rise 7s linear infinite;
+      }
+
+      @keyframes rise {
+        0% {
+          transform: translateY(0) translateX(0) scale(0.8);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.75;
+        }
+        100% {
+          transform: translateY(-115vh) translateX(12px) scale(1.25);
+          opacity: 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page,
+        .heart,
+        .animate-floaty,
+        .animate-pulseSoft,
+        .animate-fadeUp {
+          animation: none !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-ink font-body">
+    <a
+      href="#contenuto"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2"
+      >Vai al contenuto</a
+    >
+
+    <div class="hearts fixed inset-0 -z-10">
+      <span class="heart left-[8%]" style="animation-delay: 0s">❤</span>
+      <span class="heart left-[18%]" style="animation-delay: 1.5s">❤</span>
+      <span class="heart left-[36%]" style="animation-delay: 3.2s">❤</span>
+      <span class="heart left-[55%]" style="animation-delay: 0.8s">❤</span>
+      <span class="heart left-[72%]" style="animation-delay: 2.4s">❤</span>
+      <span class="heart left-[88%]" style="animation-delay: 4.2s">❤</span>
+    </div>
+
+    <main
+      id="contenuto"
+      class="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 py-6"
+    >
+      <header class="mb-6 animate-fadeUp">
+        <div
+          class="flex items-center justify-between rounded-full border border-blush-200/70 bg-white/70 px-4 py-3 backdrop-blur"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-full bg-blush-100 text-blush-700 shadow-sm animate-pulseSoft"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  d="M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10Z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p class="text-3xl uppercase tracking-[0.24em] text-blush-600">
+                Tatiana
+              </p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section
+        class="mb-6 rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-soft backdrop-blur animate-fadeUp [animation-delay:120ms]"
+      >
+        <div
+          class="mb-4 inline-flex items-center gap-2 rounded-full bg-blush-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-blush-700"
+        >
+          Mi dispiace davvero
+        </div>
+        <h1 class="font-display text-5xl leading-none text-ink">
+          Ti ho scritto queste pagine perché le parole, dette bene, meritano
+          spazio.
+        </h1>
+      </section>
+
+      <section
+        class="book-shell relative flex-1 animate-fadeUp [animation-delay:240ms]"
+      >
+        <div
+          class="pointer-events-none absolute -top-3 left-1/2 h-24 w-24 -translate-x-1/2 rounded-full bg-blush-200/60 blur-3xl"
+        ></div>
+
+        <div id="book" class="book mx-auto">
+          <article class="page" data-page="0" style="z-index: 5">
+            <div class="page-face">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">Al mio amore</p>
+                  <h2 class="mt-4 font-display text-4xl leading-tight text-ink">
+                    Alla persona che amo.
+                  </h2>
+                  <p class="mt-4 text-[15px] leading-7 text-ink/75">
+                    So che poche pagine non bastano per chiederti scusa per
+                    tutto quello che ti ho fatto, ma voglio comunque provarci,
+                    ammettere i miei errori e dirti che mi dispiace.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="page-face page-back">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">1</p>
+                  <p class="mt-3 text-base leading-7 text-ink/80">
+                    Mi dispiace per il modo in cui ti ho fatta sentire. A volte
+                    mi chiudo, a volte reagisco male, e il risultato è che
+                    ferisco proprio la persona che vorrei proteggere di più.
+                  </p>
+                </div>
+                <p class="text-sm italic text-ink/55">
+                  Non voglio minimizzare, voglio capire e migliorare.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="page" data-page="1" style="z-index: 4">
+            <div class="page-face">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">2</p>
+                  <h2 class="font-display text-3xl text-ink">Mi dispiace</h2>
+                  <p class="mt-4 text-[15px] leading-7 text-ink/78">
+                    Mi dispiace per il modo in cui ti ho fatta sentire. A volte
+                    mi chiudo, a volte reagisco male, e il risultato è che
+                    ferisco proprio la persona che vorrei proteggere di più.
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-blush-700">
+                  <span
+                    class="inline-flex h-2.5 w-2.5 rounded-full bg-blush-500"
+                  ></span>
+                  Ti meritavi più dolcezza e più attenzione.
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="page" data-page="2" style="z-index: 3">
+            <div class="page-face">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">3</p>
+                  <h2 class="font-display text-3xl text-ink">
+                    Quello che provo
+                  </h2>
+                  <p class="mt-4 text-[15px] leading-7 text-ink/78">
+                    Provo affetto vero, cura vera, e anche tanta vergogna quando
+                    penso che proprio io abbia contribuito a farti stare male.
+                    Non è questa la versione di me che voglio farti vivere. Si
+                    lo ammetto, forse ho esagerato quando ho cercato di
+                    strangolarti. Ma è anche vero che se ti fossi arresa sarebbe
+                    tutto finito subito.
+                  </p>
+                </div>
+                <div
+                  class="rounded-3xl border border-blush-200/60 bg-white/80 p-4 text-sm text-ink/70"
+                >
+                  Se potessi tornare indietro sceglierei più calma, più rispetto
+                  e più amore in ogni gesto e in ogni parola.
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="page" data-page="3" style="z-index: 2">
+            <div class="page-face">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">4</p>
+                  <h2 class="font-display text-3xl text-ink">
+                    Quello che voglio prometterti
+                  </h2>
+                  <ol class="mt-4 space-y-3 text-[15px] leading-7 text-ink/78">
+                    <li>Ascoltarti davvero, senza interromperti.</li>
+                    <li>Parlare con più calma, anche quando sono nervoso.</li>
+                    <li>Non dare mai per scontato quello che provi.</li>
+                    <li>
+                      Evitare di metterti le mani addosso se non è strettamente
+                      necessario.
+                    </li>
+                  </ol>
+                </div>
+                <p class="text-sm text-blush-700">
+                  Non parole perfette, ma impegno vero.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <article class="page" data-page="4" style="z-index: 1">
+            <div class="page-face">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">5</p>
+                  <h2 class="font-display text-4xl text-ink">
+                    Ti chiedo scusa.
+                  </h2>
+                  <p class="mt-4 text-[15px] leading-7 text-ink/78">
+                    Senza condizioni, senza “però”, senza scorciatoie. Solo
+                    così: mi dispiace, e tengo a te più di quanto a volte riesca
+                    a dimostrare bene.
+                  </p>
+                </div>
+                <button
+                  id="showFinalMessage"
+                  type="button"
+                  class="min-h-11 rounded-full bg-blush-600 px-5 py-3 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+                >
+                  Apri l’ultima nota
+                </button>
+              </div>
+            </div>
+            <div class="page-face page-back">
+              <div class="page-content">
+                <div>
+                  <p class="page-number">Con amore</p>
+                  <p class="text-[15px] leading-7 text-ink/78">
+                    Grazie per essere arrivata fino a qui. Anche se questa
+                    pagina è piccola, il sentimento con cui l’ho scritta è
+                    enorme.
+                  </p>
+                </div>
+                <p class="font-display text-3xl text-blush-700">
+                  Per te. Sempre.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section
+        class="mt-6 rounded-[2rem] border border-white/70 bg-white/75 p-4 shadow-soft backdrop-blur animate-fadeUp [animation-delay:360ms]"
+      >
+        <div class="flex items-center justify-between gap-3">
+          <button
+            id="prevBtn"
+            type="button"
+            class="min-h-11 flex-1 rounded-full border border-blush-200 bg-white px-4 py-3 text-sm font-semibold text-ink active:scale-[0.98]"
+          >
+            Indietro
+          </button>
+          <button
+            id="nextBtn"
+            type="button"
+            class="min-h-11 flex-1 rounded-full bg-blush-600 px-4 py-3 text-sm font-semibold text-white active:scale-[0.98]"
+          >
+            Avanti
+          </button>
+        </div>
+        <p id="pageHint" class="mt-3 text-center text-sm text-ink/60">
+          Pagina 1 di 5
+        </p>
+      </section>
+    </main>
+
+    <dialog
+      id="finalDialog"
+      class="backdrop:bg-ink/35 w-[calc(100%-2rem)] max-w-sm rounded-[2rem] border border-blush-100 bg-white p-0 shadow-2xl"
+    >
+      <div class="p-6">
+        <p class="text-xs uppercase tracking-[0.24em] text-blush-600">
+          Ultima nota
+        </p>
+        <h2 class="mt-3 font-display text-4xl leading-none text-ink">
+          Se vorrai, ricominciamo con più cura.
+        </h2>
+        <p class="mt-4 text-[15px] leading-7 text-ink/75">
+          Non pretendo che tutto si aggiusti subito. Però volevo dirti che per
+          me sei importante davvero, e che sono pronto a fare la mia parte con
+          maturità, attenzione e amore.
+        </p>
+
+        <div
+          id="choiceArea"
+          class="relative mt-6 h-32 overflow-hidden rounded-[1.5rem] bg-blush-50/80 p-3"
+        >
+          <button
+            id="yesBtn"
+            type="button"
+            class="absolute left-3 top-1/2 min-h-11 min-w-[120px] -translate-y-1/2 rounded-full bg-blush-600 px-5 py-3 text-sm font-semibold text-white shadow-sm active:scale-[0.98]"
+          >
+            Sì
+          </button>
+          <button
+            id="noBtn"
+            type="button"
+            class="absolute right-3 top-1/2 min-h-11 min-w-[120px] -translate-y-1/2 rounded-full border border-blush-200 bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm transition-all duration-300 active:scale-[0.98]"
+          >
+            No
+          </button>
+
+          <div
+            id="loveBurst"
+            class="pointer-events-none absolute inset-0 hidden items-center justify-center"
+          >
+            <div
+              class="flex flex-col items-center justify-center rounded-full bg-white/90 px-8 py-6 shadow-soft backdrop-blur"
+            >
+              <div class="animate-pulseSoft text-6xl text-blush-600">❤</div>
+              <p class="mt-2 font-display text-4xl text-blush-700">Ti amo</p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          id="closeDialog"
+          type="button"
+          class="mt-6 min-h-11 w-full rounded-full bg-blush-600 px-5 py-3 text-sm font-semibold text-white"
+        >
+          Chiudi
+        </button>
+      </div>
+    </dialog>
+
+    <script>
+      const pages = Array.from(document.querySelectorAll(".page"));
+      const nextBtn = document.getElementById("nextBtn");
+      const prevBtn = document.getElementById("prevBtn");
+      const pageHint = document.getElementById("pageHint");
+      const finalDialog = document.getElementById("finalDialog");
+      const showFinalMessage = document.getElementById("showFinalMessage");
+      const closeDialog = document.getElementById("closeDialog");
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const loveBurst = document.getElementById("loveBurst");
+      const choiceArea = document.getElementById("choiceArea");
+
+      let current = 0;
+      let noIndex = 0;
+
+      function updateBook() {
+        pages.forEach((page, index) => {
+          const flipped = index < current;
+          page.classList.toggle("flipped", flipped);
+          page.style.zIndex = flipped ? index + 1 : pages.length - index;
+        });
+
+        pageHint.textContent =
+          current >= pages.length
+            ? "Hai finito di leggere tutte le pagine"
+            : `Pagina ${Math.min(current + 1, pages.length)} di ${pages.length}`;
+
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current === pages.length-1;
+        prevBtn.classList.toggle("opacity-40", prevBtn.disabled);
+        nextBtn.classList.toggle("opacity-40", nextBtn.disabled);
+      }
+
+      function nextPage() {
+        if (current < pages.length) {
+          current += 1;
+          updateBook();
+        }
+      }
+
+      function prevPage() {
+        if (current > 0) {
+          current -= 1;
+          updateBook();
+        }
+      }
+
+      nextBtn.addEventListener("click", nextPage);
+      prevBtn.addEventListener("click", prevPage);
+
+      pages.forEach((page, index) => {
+        page.addEventListener("click", (event) => {
+          const rect = page.getBoundingClientRect();
+          const clickedRightSide =
+            event.clientX > rect.left + rect.width * 0.55;
+
+          if (index < current) {
+            prevPage();
+          } else if (clickedRightSide) {
+            nextPage();
+          }
+        });
+      });
+
+      function resetDialogChoices() {
+        noIndex = 0;
+        noBtn.style.left = "";
+        noBtn.style.right = "0.75rem";
+        noBtn.style.top = "50%";
+        noBtn.style.transform = "translateY(-50%)";
+        yesBtn.classList.remove("opacity-0", "pointer-events-none");
+        noBtn.classList.remove("opacity-0", "pointer-events-none");
+        loveBurst.classList.add("hidden");
+        loveBurst.classList.remove("flex");
+      }
+
+      function moveNoButton() {
+        const positions = [
+          { left: "0.75rem", right: "auto", top: "0.75rem", transform: "none" },
+          {
+            left: "calc(100% - 8.25rem)",
+            right: "auto",
+            top: "0.75rem",
+            transform: "none",
+          },
+          {
+            left: "0.75rem",
+            right: "auto",
+            top: "calc(100% - 3.75rem)",
+            transform: "none",
+          },
+          {
+            left: "calc(100% - 8.25rem)",
+            right: "auto",
+            top: "calc(100% - 3.75rem)",
+            transform: "none",
+          },
+          {
+            left: "50%",
+            right: "auto",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+          },
+        ];
+
+        noIndex = (noIndex + 1) % positions.length;
+        Object.assign(noBtn.style, positions[noIndex]);
+      }
+
+      showFinalMessage.addEventListener("click", () => {
+        resetDialogChoices();
+        finalDialog.showModal();
+      });
+
+      closeDialog.addEventListener("click", () => {
+        finalDialog.close();
+        const message = encodeURIComponent(
+          "Ti perdono e ti aspetto mercoledì a casa mia <3",
+        );
+        window.location.href = `https://wa.me/393888198068?text=${message}`;
+      });
+      finalDialog.addEventListener("close", resetDialogChoices);
+      finalDialog.addEventListener("click", (event) => {
+        const rect = finalDialog.getBoundingClientRect();
+        const inDialog =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.bottom &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.right;
+        if (!inDialog) finalDialog.close();
+      });
+
+      yesBtn.addEventListener("click", () => {
+        yesBtn.classList.add("opacity-0", "pointer-events-none");
+        noBtn.classList.add("opacity-0", "pointer-events-none");
+        loveBurst.classList.remove("hidden");
+        loveBurst.classList.add("flex");
+      });
+
+      noBtn.addEventListener("click", moveNoButton);
+      noBtn.addEventListener("pointerenter", moveNoButton);
+
+      choiceArea.addEventListener("pointermove", (event) => {
+        const rect = noBtn.getBoundingClientRect();
+        const dx = event.clientX - (rect.left + rect.width / 2);
+        const dy = event.clientY - (rect.top + rect.height / 2);
+        const distance = Math.hypot(dx, dy);
+        if (distance < 90) moveNoButton();
+      });
+
+      updateBook();
+    </script>
+  </body>
+</html>
